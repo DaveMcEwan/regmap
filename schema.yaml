@@ -1,0 +1,128 @@
+
+# May be converted to JSON with:
+#   alias yaml-to-json="python -c 'import sys, json, yaml; print(json.dumps(yaml.safe_load(sys.stdin), indent=2))'"
+#   yaml-to-json < schema.yaml > schema.json
+
+$schema: https://json-schema.org/draft/2020-12/schema
+description: Schema for address map descriptions
+
+$defs:
+  shortname: # {{{
+    type: string
+    pattern: "^[A-Za-z_][A-Za-z0-9_]*$"
+    $comment: Identifers may be used in generated source codes.
+  # }}} $def shortname
+  longname: # {{{
+    type: string
+    pattern: "^[A-Za-z_].*[A-Za-z0-9_]+$"
+    $comment: Pattern intended to prevent lead/trailing whitespace.
+  # }}} $def longname
+  notes: # {{{
+    type: string
+    $comment: Free-form Markdown has no syntactic restriction.
+  # }}} $def notes
+  register-address-position: # {{{
+    # Maximum is chosen for small SoC peripherals.
+    # Zero-indexed.
+    type: integer
+    minimum: 0
+    exclusiveMaximum: 4096
+  # }}} $def register-address-position
+  field-bit-position: # {{{
+    # Maximum is chosen for small SoC peripherals.
+    # Zero-indexed.
+    type: integer
+    minimum: 0
+    exclusiveMaximum: 64
+  # }}} $def field-bit-position
+  noname: # {{{
+    enum:
+      - reserved
+      - vendor
+  # }}} $def noname
+  register: # {{{
+    oneOf:
+      - type: object
+        required:
+          - name
+          - address
+          - fields
+        additionalProperties: false
+        properties:
+          name: { $ref: "#/$defs/shortname" }
+          longname: { $ref: "#/$defs/longname" }
+          notes: { $ref: "#/$defs/notes" }
+          address: { $ref: "#/$defs/register-address-position" }
+          repeat: { $ref: "#/$defs/register-address-position" }
+          stride: { $ref: "#/$defs/register-address-position" }
+          fields:
+            type: array
+            items: { $ref: "#/$defs/field" }
+      - type: object
+        required:
+          - noname
+          - address
+        additionalProperties: false
+        properties:
+          noname: { $ref: "#/$defs/noname" }
+          notes: { $ref: "#/$defs/notes" }
+          address: { $ref: "#/$defs/register-address-position" }
+          repeat: { $ref: "#/$defs/register-address-position" }
+          stride: { $ref: "#/$defs/register-address-position" }
+  # }}} def register
+  field: # {{{
+    oneOf:
+      - type: object
+        required:
+          - name
+          - msb
+          - access
+        additionalProperties: false
+        properties:
+          name: { $ref: "#/$defs/shortname" }
+          longname: { $ref: "#/$defs/longname" }
+          notes: { $ref: "#/$defs/notes" }
+          msb: { $ref: "#/$defs/field-bit-position" }
+          lsb: { $ref: "#/$defs/field-bit-position" }
+          access:
+            oneOf:
+              - enum:
+                  - RO          # Readable, values may change.
+                  - RW          # Readable and writeable.
+              - type: integer   # Read-only, value is known and constant.
+      - type: object
+        required:
+          - noname
+          - msb
+        additionalProperties: false
+        properties:
+          noname: { $ref: "#/$defs/noname" }
+          longname: { $ref: "#/$defs/longname" }
+          notes: { $ref: "#/$defs/notes" }
+          msb: { $ref: "#/$defs/field-bit-position" }
+          lsb: { $ref: "#/$defs/field-bit-position" }
+  # }}} def field
+
+type: object
+required:
+  - name
+  - msb
+  - address-range
+  - registers
+additionalProperties: false
+properties:
+  name: { $ref: "#/$defs/shortname" }
+  longname: { $ref: "#/$defs/longname" }
+  notes: { $ref: "#/$defs/notes" }
+  msb: { $ref: "#/$defs/field-bit-position" }
+  address-range: # {{{
+    type: object
+    additionalProperties: false
+    properties:
+      top: { $ref: "#/$defs/register-address-position" }
+      bottom: { $ref: "#/$defs/register-address-position" }
+  # }}} address-range
+  registers:
+    type: array
+    items: { $ref: "#/$defs/register" }
+

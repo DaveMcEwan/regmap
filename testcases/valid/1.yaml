@@ -1,0 +1,38 @@
+
+# Validate with:
+#   pip install check-jsonschema
+#   check-jsonschema --schemafile schema.yaml testcases/valid/1.yaml
+
+name: ShrtNm
+longname: "My Long !@#$ Name 0"
+notes: "foo bar"
+msb: 31
+address-range:
+  top: 20
+  bottom: 10
+registers:
+  - name: DID
+    address: 0x1
+    longname: "Device ID"
+    notes: Notes on DID
+    fields:
+      - name: F1
+        msb: 55
+        access: RW
+      - name: F2
+        msb: 12
+        access: 123
+      - noname: vendor
+        msb: 12
+      - noname: reserved
+        msb: 12
+  - noname: reserved
+    address: 0xb
+    repeat: 2
+    stride: 1
+    notes: Notes on a reserved register.
+  - noname: vendor
+    address: 0xe
+    repeat: 3
+    stride: 2
+    notes: Notes on an vendor register.
